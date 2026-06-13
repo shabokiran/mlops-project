@@ -25,6 +25,12 @@ app = FastAPI()
 class PredictionRequest(BaseModel):
     features: list[float]
 
+@app.get("/")
+def root():
+    return {
+        "service": "mlops-project",
+        "status": "running"
+    }
 
 @app.get("/health")
 def health():
