@@ -1,0 +1,73 @@
+groups:
+  - name: mlops_alerts
+    interval: 30s
+    rules:
+      # Alert 1: Data Lake Unavailable
+      - alert: DataLakeUnavailable
+        expr: increase(datalake_unavailable_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Data Lake API is unavailable"
+          description: "The /records endpoint returned 503 errors. Check API availability."
+
+      # Alert 2: Feature Added
+      - alert: FeatureAdded
+        expr: increase(feature_added_total[10m]) > 0
+        for: 0s
+        labels:
+          severity: warning
+        annotations:
+          summary: "New feature detected in schema"
+          description: "A new feature has been added to the data schema. Retraining may be required."
+
+      # Alert 3: Feature Removed
+      - alert: FeatureRemoved
+        expr: increase(feature_removed_total[10m]) > 0
+        for: 0s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Feature removed from schema"
+          description: "A feature was dropped from the schema. Verify pipeline compatibility."
+
+      # Alert 4: Distribution Drift
+      - alert: DistributionDrift
+        expr: distribution_drift_detected == 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Distribution drift detected"
+          description: "Significant distribution drift detected in incoming data. Model may be stale."
+
+      # Alert 5: Feature Drift Detected
+      - alert: FeatureDriftDetected
+        expr: distribution_drift_detected == 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Feature-level drift flagged"
+          description: "Individual feature drift detected. Investigate upstream data sources."
+
+      # Alert 6: High Response Latency
+      - alert: HighResponseLatency
+        expr: histogram_quantile(0.95, sum(rate(response_delay_seconds_bucket[5m])) by (le)) > 1.0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API response latency"
+          description: "P95 response latency is above 1 second. Investigate performance issues."
+
+      # Alert 7: Low Model Accuracy
+      - alert: LowModelAccuracy
+        expr: model_accuracy < 0.80
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Model accuracy dropped below threshold"
+          description: "Model accuracy is below 0.80. Auto-retraining has been triggered."
